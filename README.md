@@ -109,7 +109,7 @@ because Spark on plain Windows needs extra setup to write files.
 3. Download the data (about 4.6 million reviews):
    ```bash
    mkdir -p data/raw
-   wget -P data/raw https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_2023/raw/review_categories/Video_Games.jsonl.gz
+   wget -P data/raw https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/review_categories/Video_Games.jsonl.gz
    ```
 4. Run the steps:
    ```bash
