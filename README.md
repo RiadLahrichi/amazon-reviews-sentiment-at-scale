@@ -25,9 +25,13 @@ Data: the `Video_Games` category of [Amazon Reviews 2023](https://amazon-reviews
 <!-- TODO: paste results/benchmark.md here -->
 
 Both engines use the same reviews, the same features and the same model, so
-the comparison is about the engine. Spark's logistic regression has no
-regularization by default while scikit-learn's has a little, which is why
-their scores differ slightly on small samples.
+the comparison is about the engine. That needed some care: with its default
+settings, Spark scored 0.75 macro F1 against scikit-learn's 0.86 on the same
+36,584 training reviews (a test run on 50,000 reviews). A few of Spark's
+defaults differ from scikit-learn's, and `common.py` changes them so both
+engines train the same model. The one that mattered most: Spark rescales every
+feature before penalizing large weights, so rare words are barely penalized
+and the model overfits.
 
 ### Three models compared in Spark, full dataset
 
