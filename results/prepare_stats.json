@@ -1,0 +1,9 @@
+{
+  "source": "Video_Games.jsonl.gz",
+  "reviews": 4551697,
+  "positive": 3388878,
+  "negative": 827249,
+  "three_stars_no_label": 335570,
+  "labelled_rows": 4216127,
+  "positive_share": 0.804
+}
