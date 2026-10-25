@@ -9,8 +9,10 @@ scikit-learn. This version asks what changes when the data gets thousands of
 times bigger: which engine is faster at which size, where a single machine
 runs out of memory, and what the model's mistakes say about the reviews.
 
-<!-- TODO: after running everything, write 3 or 4 findings here, one sentence
-each, with real numbers from results/. -->
+- Scikit-learn was faster than Spark at every size on one laptop (147 s vs 325 s on 3.4M training reviews), and macro F1 was within 0.01 (0.9005 vs 0.9075).
+- Scikit-learn's memory grew with the data (0.85 GB to 8.3 GB) because it holds everything in RAM. Spark's stayed between 3.5 and 6.6 GB, probably because it works through the data in partitions.
+- Logistic regression was the best of the three models (0.908 macro F1), ahead of linear SVM (0.903) and Naive Bayes (0.859), and it trained about 40% faster than the SVM.
+- More data helped with diminishing returns: macro F1 went from 0.864 (7,878 training reviews) to 0.9005 (3.4M).
 
 ## Results
 
@@ -22,7 +24,18 @@ Data: the `Video_Games` category of [Amazon Reviews 2023](https://amazon-reviews
 
 ![Time and memory by number of training reviews](results/benchmark.png)
 
-<!-- TODO: paste results/benchmark.md here -->
+| engine | training reviews | seconds | memory (GB) | macro F1 |
+|---|---:|---:|---:|---:|
+| sklearn | 7,878 | 10.7 | 0.85 | 0.8642 |
+| spark | 7,878 | 77.5 | 3.63 | 0.8663 |
+| sklearn | 79,635 | 5.9 | 1.08 | 0.8785 |
+| spark | 79,635 | 75.6 | 3.65 | 0.8615 |
+| sklearn | 399,741 | 20.2 | 1.91 | 0.8946 |
+| spark | 399,741 | 95.0 | 4.62 | 0.8939 |
+| sklearn | 800,081 | 37.6 | 2.41 | 0.898 |
+| spark | 800,081 | 140.7 | 6.63 | 0.9011 |
+| sklearn | 3,373,400 | 147.4 | 8.32 | 0.9005 |
+| spark | 3,373,400 | 325.0 | 3.46 | 0.9075 |
 
 Both engines use the same reviews, the same features and the same model, so
 the comparison is about the engine. That needed some care: with its default
@@ -35,7 +48,13 @@ and the model overfits.
 
 ### Three models compared in Spark, full dataset
 
-<!-- TODO: paste results/compare_models.md here -->
+Trained on 3,373,400 reviews, tested on 842,727 reviews.
+
+| model               |   macro_f1 |   f1_negative |   f1_positive |   accuracy |   training_seconds |
+|:--------------------|-----------:|--------------:|--------------:|-----------:|-------------------:|
+| Naive Bayes         |      0.859 |         0.782 |         0.935 |      0.9   |                 18 |
+| Logistic regression |      0.908 |         0.855 |         0.96  |      0.938 |                178 |
+| Linear SVM          |      0.903 |         0.848 |         0.958 |      0.935 |                300 |
 
 ### Where the model goes wrong
 
