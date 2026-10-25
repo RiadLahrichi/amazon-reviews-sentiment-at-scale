@@ -23,7 +23,7 @@ def short_number(n, _position=None):
 
 def write_table(results):
     table = results[["engine", "size", "status", "train_rows", "seconds", "memory_gb", "macro_f1"]]
-    # show the missing numbers of failed runs as empty cells
+    # empty cells for failed runs
     table = table.astype(str).replace({"nan": "", "<NA>": ""})
     with open("results/benchmark.md", "w") as f:
         f.write(table.to_markdown(index=False) + "\n")
@@ -39,7 +39,7 @@ def draw_chart(results):
         for ax, column in [(time_ax, "seconds"), (memory_ax, "memory_gb")]:
             ax.plot(runs["train_rows"], runs[column], color=COLORS[engine],
                     linewidth=2, marker="o", markersize=7, label=NAMES[engine])
-            # write the engine's name next to its last point
+            # label at the last point
             last = runs.iloc[-1]
             ax.annotate(NAMES[engine], (last["train_rows"], last[column]),
                         xytext=(6, 0), textcoords="offset points", va="center", fontsize=9)
@@ -57,7 +57,7 @@ def draw_chart(results):
         ax.spines[["top", "right"]].set_visible(False)
         ax.legend(frameon=False, fontsize=9)
 
-    # List the runs that did not finish under the chart
+    # note the runs that didn't finish
     failed = results[results["status"] != "ok"]
     if len(failed) > 0:
         notes = [f"{NAMES[r.engine]} on {r.size} reviews: {r.status}" for r in failed.itertuples()]
@@ -70,7 +70,7 @@ def draw_chart(results):
 
 if __name__ == "__main__":
     results = pd.read_csv("results/benchmark.csv")
-    # keep row counts as whole numbers even when a failed run left them empty
+    # whole numbers even if a failed run left blanks
     results["train_rows"] = results["train_rows"].astype("Int64")
     write_table(results)
     draw_chart(results)

@@ -1,10 +1,8 @@
-"""Compare three classic classifiers in Spark on the full dataset.
+"""Naive Bayes vs logistic regression vs linear SVM in Spark, on the same vectors.
 
     python compare_models.py
     python compare_models.py --size 500000     (smaller and faster)
 
-The TF-IDF vectors are computed once, then Naive Bayes, logistic regression
-and a linear SVM are all trained on the same vectors.
 Writes results/compare_models.md.
 """
 
@@ -29,21 +27,19 @@ def main():
     train, train_rows = add_class_weights(add_terms(train))
     test = add_terms(test)
 
-    # Turn the text into TF-IDF vectors once. cache() keeps the vectors in
-    # memory, because all three models are trained on them.
+    # compute the TF-IDF vectors once and cache() them, all three models use them
     tfidf = fit_tfidf(train)
     train_vectors = tfidf.transform(train).select("features", "label", "weight").cache()
     test_vectors = tfidf.transform(test).select("features", "label").cache()
-    # Spark is lazy: nothing is computed until a result is needed. count()
-    # forces the vectors to be built now, so the first model's training time
-    # doesn't include building them.
+    # Spark is lazy: count() builds the vectors now, so the first model's
+    # training time doesn't include that
     test_rows = test_vectors.count()
     train_vectors.count()
 
     models = {
         "Naive Bayes": NaiveBayes(weightCol="weight"),
         "Logistic regression": spark_logistic_regression(train_rows),
-        # the same penalty and settings as the logistic regression, so the comparison is fair
+        # same penalty and settings as the logistic regression, to keep it fair
         "Linear SVM": LinearSVC(weightCol="weight", regParam=1.0 / train_rows,
                                 standardization=False),
     }

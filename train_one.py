@@ -1,16 +1,10 @@
-"""Train one engine on one sample size and add the result to results/benchmark.csv.
+"""Train one engine on one sample size and add a row to results/benchmark.csv.
 
     python train_one.py --engine sklearn --size 100000
     python train_one.py --engine spark --size all
 
-run_benchmark.sh calls this once for every engine and size. Each call is a
-new Python process, so the memory used by one run can't affect the next.
-If a run uses more memory than the machine has, Linux stops the process and
-run_benchmark.sh records it as "crashed or ran out of memory".
-
-Both engines get the same reviews, the same features (words and word pairs,
-hashed into 262,144 buckets, then TF-IDF) and the same model (logistic
-regression with balanced class weights). Only the engine is different.
+run_benchmark.sh calls this for every engine and size, each in its own
+process so the memory of one run can't affect the next.
 """
 
 import argparse
@@ -34,9 +28,8 @@ RESULTS = "results/benchmark.csv"
 def train_sklearn(size):
     train, test = load_sample_pandas(size)
     model = make_pipeline(
-        # alternate_sign=False keeps plain word counts, like Spark's HashingTF.
-        # token_pattern splits on spaces like Spark's Tokenizer. The default
-        # would drop one-letter words, which Spark keeps.
+        # alternate_sign=False: plain counts, like Spark's HashingTF
+        # token_pattern: split on spaces like Spark's Tokenizer (the default drops one-letter words)
         HashingVectorizer(n_features=NUM_FEATURES, ngram_range=(1, 2), alternate_sign=False,
                           token_pattern=r"\S+"),
         TfidfTransformer(),
@@ -54,19 +47,19 @@ def train_spark(size):
     test = add_terms(test)
 
     tfidf = fit_tfidf(train)
-    # see common.py for the settings that make it match scikit-learn
+    # the settings that match scikit-learn are in common.py
     model = spark_logistic_regression(train_rows).fit(tfidf.transform(train))
     predictions = model.transform(tfidf.transform(test)).select("label", "prediction").toPandas()
-    # Spark is not stopped here: it stops when this script ends. Until then
-    # its Java process is still running, so peak_memory_gb() can measure it.
+    # Spark is not stopped here, so its Java process is still alive for peak_memory_gb()
     return train_rows, predictions["label"], predictions["prediction"].astype(int)
 
 
 def peak_memory_gb():
-    """Highest memory used by this Python process, plus the memory of its child
-    processes. Spark does its work in a separate Java process started by
-    PySpark, so that's where Spark's memory shows up. Java rarely gives memory
-    back to the system, so its current size is close to its peak."""
+    """Peak memory of this Python process plus its child processes.
+
+    Spark runs in a Java process started by PySpark, so its memory shows up in
+    the children. Java rarely gives memory back, so its current size is close
+    to its peak."""
     python_peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024  # Linux reports KB
     children = sum(child.memory_info().rss for child in psutil.Process().children(recursive=True))
     return (python_peak + children) / 1024 ** 3
@@ -99,7 +92,7 @@ def main():
     except MemoryError:
         row["status"] = "out of memory"
     except Exception as error:
-        # When Spark's Java process runs out of memory, Python gets a general error
+        # a Java out-of-memory shows up in Python as a general error
         if "OutOfMemoryError" in str(error):
             row["status"] = "out of memory"
         else:

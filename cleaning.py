@@ -1,17 +1,15 @@
 """Text cleaning rules, used by prepare_data.py.
 
-The cleaning uses Spark's built-in functions instead of a normal Python
-function applied to each review. Built-in functions run inside Spark itself,
-which is much faster than sending millions of reviews to Python and back.
+Built from Spark's own functions, because a Python function per review would
+mean sending millions of rows to Python and back.
 """
 
 from pyspark.sql import functions as F
 
-# Words that flip the meaning of what follows. The first version of this
-# project removed them as stop words, so "not good" turned into "good".
+# words that flip the meaning. Version 1 removed them as stop words, so "not good" became "good"
 NEGATIONS = {"no", "nor", "not"}
 
-# The same stop word list as the first version, minus the negation words.
+# the version 1 stop word list, without the negation words
 STOP_WORDS = [
     "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
     "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself",
@@ -39,25 +37,20 @@ def clean_text(text):
     "Don't buy it!<br />Broke in 2 days" becomes "do not buy it broke in days".
     """
     text = F.lower(text)
-    # Reviews use <br /> between sentences. Replacing tags with a space
-    # (not with nothing) stops "great<br />product" becoming "greatproduct".
+    # replace tags with a space, not nothing, or "great<br />product" becomes "greatproduct"
     text = F.regexp_replace(text, r"<[^>]+>", " ")
     text = F.regexp_replace(text, r"https?://\S+|www\.\S+", " ")  # links
-    # Expand negative contractions before removing punctuation, so the
-    # "not" survives. Reviews use both ' and ’ as apostrophes.
+    # expand contractions before punctuation goes, so the "not" survives (reviews use ' and ’)
     text = F.regexp_replace(text, r"won[’']t", "will not")
     text = F.regexp_replace(text, r"can[’']t", "can not")
     text = F.regexp_replace(text, r"n[’']t\b", " not")  # don't, isn't, didn't...
-    text = F.regexp_replace(text, r"[^a-z\s]", " ")  # remove everything except letters
-    text = F.regexp_replace(text, r"\s+", " ")  # many spaces -> one space
+    text = F.regexp_replace(text, r"[^a-z\s]", " ")  # letters only
+    text = F.regexp_replace(text, r"\s+", " ")  # one space
     return F.trim(text)
 
 
 def remove_negations(text):
-    """Drop "no", "nor" and "not" from a cleaned review.
-
-    Only used by error_analysis.py, to measure how much these words help.
-    """
+    """Drop "no", "nor" and "not". Only used by error_analysis.py to see how much they help."""
     return " ".join(word for word in text.split() if word not in NEGATIONS)
 
 
