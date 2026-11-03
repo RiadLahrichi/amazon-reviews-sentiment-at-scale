@@ -1,5 +1,5 @@
 # Amazon Reviews Sentiment at Scale
-<img width="1304" height="1078" alt="amazonDashboard" src="https://github.com/user-attachments/assets/0028e0cd-740c-480e-bd28-0ae2d020af51" />
+
 
 A sentiment classifier for Amazon product reviews (positive or negative),
 scaled from 1,000 reviews on scikit-learn to millions of reviews on Spark,
