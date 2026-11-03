@@ -1,4 +1,5 @@
 # Amazon Reviews Sentiment at Scale
+<img width="1304" height="1078" alt="amazonDashboard" src="https://github.com/user-attachments/assets/0028e0cd-740c-480e-bd28-0ae2d020af51" />
 
 A sentiment classifier for Amazon product reviews (positive or negative),
 scaled from 1,000 reviews on scikit-learn to millions of reviews on Spark,
@@ -14,7 +15,8 @@ runs out of memory, and what the model's mistakes say about the reviews.
 - Logistic regression was the best of the three models (0.908 macro F1), ahead of linear SVM (0.903) and Naive Bayes (0.859), and it trained about 40% faster than the SVM.
 - More data helped with diminishing returns: macro F1 went from 0.864 (7,878 training reviews) to 0.9005 (3.4M).
 
-## Results
+## Results<img width="1304" height="1078" alt="amazonDashboard" src="https://github.com/user-attachments/assets/57e54dd4-452c-427e-b7c8-62a4dbda8bb4" />
+
 
 Data: the `Video_Games` category of [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/)
 (McAuley Lab, UC San Diego). Counts after cleaning are in
