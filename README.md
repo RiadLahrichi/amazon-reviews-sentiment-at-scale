@@ -83,6 +83,8 @@ data/reviews.parquet
         +-- compare_models.py                   Naive Bayes vs logistic regression vs SVM
         +-- insights.py                         Spark SQL questions about the reviews
         +-- error_analysis.py                   where the model is wrong
+        +-- make_transformer_sample.py -> train_transformer.ipynb
+                                                DistilBERT vs logistic regression (on a GPU)
 ```
 
 The model: each review becomes a vector of TF-IDF scores for its words and
@@ -144,6 +146,14 @@ because Spark on plain Windows needs extra setup to write files.
    python insights.py
    python error_analysis.py
    ```
+5. DistilBERT vs logistic regression needs a GPU, so it runs on Google Colab.
+   Make the sample here:
+   ```bash
+   python make_transformer_sample.py
+   ```
+   Then open `train_transformer.ipynb` in Colab, choose a T4 GPU runtime, run
+   all cells and upload `data/transformer_sample.parquet` when asked. It saves
+   `results/transformer.md`.
 
 For a quick check that everything works, first run
 `python prepare_data.py data/raw/Video_Games.jsonl.gz --limit 50000` and
@@ -171,4 +181,6 @@ For a quick check that everything works, first run
 | `compare_models.py` | three models in Spark on the full data |
 | `insights.py` | Spark SQL questions about the reviews |
 | `error_analysis.py` | mistakes, strongest words, the negation test |
+| `make_transformer_sample.py` | sample of the reviews for the transformer notebook |
+| `train_transformer.ipynb` | fine-tunes DistilBERT and compares it with logistic regression |
 | `tests/` | tests for the cleaning rules |
