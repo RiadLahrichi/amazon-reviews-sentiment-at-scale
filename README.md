@@ -14,6 +14,7 @@ runs out of memory, and what the model's mistakes say about the reviews.
 - Scikit-learn's memory grew with the data (0.85 GB to 8.3 GB) because it holds everything in RAM. Spark's stayed between 3.5 and 6.6 GB, probably because it works through the data in partitions.
 - Logistic regression was the best of the three models (0.908 macro F1), ahead of linear SVM (0.903) and Naive Bayes (0.859), and it trained about 40% faster than the SVM.
 - More data helped with diminishing returns: macro F1 went from 0.864 (7,878 training reviews) to 0.9005 (3.4M).
+- A fine-tuned transformer did better with far less data: DistilBERT reached 0.920 macro F1 on 79,635 training reviews, against 0.879 for logistic regression on the same reviews. It took 8 minutes on a GPU, against 5 seconds for logistic regression.
 
 ## Results<img width="1304" height="1078" alt="amazonDashboard" src="https://github.com/user-attachments/assets/57e54dd4-452c-427e-b7c8-62a4dbda8bb4" />
 
@@ -57,6 +58,23 @@ Trained on 3,373,400 reviews, tested on 842,727 reviews.
 | Naive Bayes         |      0.859 |         0.782 |         0.935 |      0.9   |                 18 |
 | Logistic regression |      0.908 |         0.855 |         0.96  |      0.938 |                178 |
 | Linear SVM          |      0.903 |         0.848 |         0.958 |      0.935 |                300 |
+
+### DistilBERT vs logistic regression, same sample
+
+Trained on 79,635 reviews and tested on 20,042, the same sample and split as
+the benchmark. DistilBERT was fine-tuned for 2 epochs on a Tesla T4 GPU
+(Google Colab), with reviews cut at 128 tokens.
+
+| model | macro F1 | F1 negative | F1 positive | accuracy | training seconds |
+|---|---:|---:|---:|---:|---:|
+| Logistic regression (TF-IDF) | 0.8785 | 0.8098 | 0.9472 | 0.9173 | 5 |
+| DistilBERT (fine-tuned) | 0.9199 | 0.8738 | 0.9661 | 0.9465 | 495 |
+
+The biggest gain is on negative reviews, the harder class (0.810 to 0.874).
+DistilBERT reads the raw text in order, so it can use context that word
+counts lose. It was right where logistic regression was wrong on 1,074 test
+reviews, and wrong where logistic regression was right on 489. Examples are in
+[results/transformer.md](results/transformer.md).
 
 ### Where the model goes wrong
 
